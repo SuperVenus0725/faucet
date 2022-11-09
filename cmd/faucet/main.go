@@ -1,65 +1,87 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/allinbits/cosmos-faucet/pkg/faucet"
-	"github.com/allinbits/cosmos-faucet/pkg/utils"
+	"faucet/cosmosfaucet"
+
+	"github.com/ignite/cli/ignite/pkg/chaincmd"
+	chaincmdrunner "github.com/ignite/cli/ignite/pkg/chaincmd/runner"
+	"github.com/ignite/cli/ignite/pkg/cosmosver"
 )
-
-var (
-	logLevel string
-	port     int
-
-	keyName         string
-	keyMnemonic     string
-	keyringPassword string
-	appCli          string
-	denom           string
-	creditAmount    uint64
-	maxCredit       uint64
-)
-
-func init() {
-	flag.StringVar(&logLevel, "log-level", utils.GetEnvString("LOG_LEVEL", "info"), "log level")
-	flag.IntVar(&port, "port", utils.GetEnvInt("PORT", 8000), "port to expose faucet")
-
-	flag.StringVar(&keyName, "key-name", utils.GetEnvString("KEY_NAME", "faucet"), "the key name to be used by faucet")
-	flag.StringVar(&keyMnemonic, "mnemonic", utils.GetEnvString("MNEMONIC", ""), "mnemonic for restoring key")
-	flag.StringVar(&keyringPassword, "keyring-password", utils.GetEnvString("KEYRING_PASSWORD", ""), "the password for accessing keyring")
-	flag.StringVar(&appCli, "cli-name", utils.GetEnvString("CLI_NAME", "gaiacli"), "the name of the cli executable")
-	flag.StringVar(&denom, "denom", utils.GetEnvString("DENOM", "uatom"), "the coin denomination")
-	flag.Uint64Var(&creditAmount, "credit-amount", utils.GetEnvUint64("CREDIT_AMOUNT", 10000000), "the amount to credit in each request")
-	flag.Uint64Var(&maxCredit, "max-credit", utils.GetEnvUint64("MAX_CREDIT", 100000000), "the maximum credit per account")
-}
 
 func main() {
 	flag.Parse()
 
-	loggingLevel, err := log.ParseLevel(logLevel)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.SetLevel(loggingLevel)
-
-	f, err := faucet.NewFaucet(
-		faucet.KeyName(keyName),
-		faucet.Denom(denom),
-		faucet.WithMnemonic(keyMnemonic),
-		faucet.CliName(appCli),
-		faucet.KeyringPassword(keyringPassword),
-		faucet.CreditAmount(creditAmount),
-		faucet.MaxCredit(maxCredit),
-	)
+	configKeyringBackend, err := chaincmd.KeyringBackendFromString(keyringBackend)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	http.HandleFunc("/", f.ServeHTTP)
+	ccoptions := []chaincmd.Option{
+		chaincmd.WithKeyringPassword(keyringPassword),
+		chaincmd.WithKeyringBackend(configKeyringBackend),
+		chaincmd.WithAutoChainIDDetection(),
+		chaincmd.WithNodeAddress(nodeAddress),
+	}
+
+	if home != "" {
+		ccoptions = append(ccoptions, chaincmd.WithHome(home))
+	}
+
+	if legacySendCmd {
+		ccoptions = append(ccoptions, chaincmd.WithLegacySendCommand())
+	}
+
+	switch sdkVersion {
+	case "stargate-44":
+		ccoptions = append(ccoptions,
+			chaincmd.WithVersion(cosmosver.StargateFortyFourVersion),
+		)
+	case "stargate-40":
+		ccoptions = append(ccoptions,
+			chaincmd.WithVersion(cosmosver.StargateFortyVersion),
+		)
+	case "launchpad":
+		ccoptions = append(ccoptions,
+			chaincmd.WithVersion(cosmosver.MaxLaunchpadVersion),
+			chaincmd.WithLaunchpadCLI(appCli),
+		)
+		if home != "" {
+			ccoptions = append(ccoptions, chaincmd.WithLaunchpadCLIHome(home))
+		}
+	default:
+		ccoptions = append(ccoptions,
+			chaincmd.WithVersion(cosmosver.Latest),
+		)
+	}
+
+	cr, err := chaincmdrunner.New(context.Background(), chaincmd.New(appCli, ccoptions...))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	coins := strings.Split(defaultDenoms, denomSeparator)
+
+	faucetOptions := make([]cosmosfaucet.Option, len(coins))
+	for i, coin := range coins {
+		faucetOptions[i] = cosmosfaucet.Coin(creditAmount, maxCredit, coin)
+	}
+
+	faucetOptions = append(faucetOptions, cosmosfaucet.Account(keyName, keyMnemonic, coinType))
+
+	faucet, err := cosmosfaucet.New(context.Background(), cr, faucetOptions...)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	http.HandleFunc("/", faucet.ServeHTTP)
 	log.Infof("listening on :%d", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }
