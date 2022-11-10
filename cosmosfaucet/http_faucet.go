@@ -47,8 +47,6 @@ func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("Check if cookie is valid")
 	fmt.Println(cookie_captcha.Valid())
-	result, err := f.validateReCAPTCHA(cookie_captcha.Value)
-
 	if err = cookie_captcha.Valid(); err != nil {
 		responseError(w, http.StatusBadRequest, err)
 		return
