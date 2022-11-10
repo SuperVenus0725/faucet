@@ -11,6 +11,7 @@ import (
 	"faucet/cmd/config"
 
 	chaincmdrunner "github.com/ignite/cli/ignite/pkg/chaincmd/runner"
+	"gopkg.in/ezzarghili/recaptcha-go.v4"
 )
 
 const (
@@ -63,6 +64,7 @@ type Faucet struct {
 	openAPIData openAPIData
 
 	configuration *config.Config
+	captcha       recaptcha.ReCAPTCHA
 }
 
 // Option configures the faucetOptions.
@@ -114,12 +116,15 @@ func OpenAPI(apiAddress string) Option {
 
 // New creates a new faucet with ccr (to access and use blockchain's CLI) and given options.
 func New(ctx context.Context, ccr chaincmdrunner.Runner, conf *config.Config, options ...Option) (Faucet, error) {
+	c, _ := recaptcha.NewReCAPTCHA(conf.ReCAPTCHA_ServerKey, recaptcha.V2, 10*time.Second) // for v2 API get your secret from https://www.google.com/recaptcha/admin
+
 	f := Faucet{
 		runner:        ccr,
 		accountName:   DefaultAccountName,
 		coinsMax:      make(map[string]uint64),
 		openAPIData:   openAPIData{"Blockchain", "http://localhost:1317"},
 		configuration: conf,
+		captcha:       c,
 	}
 
 	for _, apply := range options {

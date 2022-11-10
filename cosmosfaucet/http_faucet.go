@@ -54,15 +54,16 @@ func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("00000Passed here00000")
 	fmt.Println(cookie_captcha.Value)
-	result, err := f.validateReCAPTCHA(cookie_captcha.Value)
 
-	fmt.Println("Verify result")
-	fmt.Println(result)
-
-	if !result || err != nil {
+	err = f.captcha.Verify(cookie_captcha.Value)
+	if err != nil {
+		fmt.Println("verify failed")
 		responseError(w, http.StatusBadRequest, err)
 		return
 	}
+
+	fmt.Println("Verify result")
+	fmt.Println("passed")
 
 	// decode request into req.
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
