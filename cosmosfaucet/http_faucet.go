@@ -3,7 +3,6 @@ package cosmosfaucet
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -18,6 +17,9 @@ import (
 type TransferRequest struct {
 	// AccountAddress to request for coins.
 	AccountAddress string `json:"address"`
+
+	// reCaptcha response.
+	ReCaptchaResponse string `json:"response"`
 
 	// Coins that are requested.
 	// default ones used when this one isn't provided.
@@ -37,25 +39,20 @@ type TransferResponse struct {
 
 func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 	var req TransferRequest
-	if err := r.ParseForm(); err != nil {
-		responseError(w, http.StatusBadRequest, err)
-		return
-	}
-
-	fmt.Println(r)
-	if len(r.FormValue("g-recaptcha-response")) == 0 {
-		responseError(w, http.StatusBadRequest, nil)
-		return
-	}
-
-	result, err := f.validateReCAPTCHA(r.FormValue("g-recaptcha-response"))
+	cookie_captcha, err := r.Cookie("response")
 	if err != nil {
 		responseError(w, http.StatusBadRequest, err)
 		return
 	}
 
-	if !result {
-		responseError(w, http.StatusBadRequest, nil)
+	if err = cookie_captcha.Valid(); err != nil {
+		responseError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	result, err := f.validateReCAPTCHA(cookie_captcha.Value)
+	if !result || err != nil {
+		responseError(w, http.StatusBadRequest, err)
 		return
 	}
 
