@@ -3,6 +3,7 @@ package cosmosfaucet
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -40,6 +41,8 @@ type TransferResponse struct {
 func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 	var req TransferRequest
 	cookie_captcha, err := r.Cookie("response")
+	fmt.Println(cookie_captcha)
+
 	if err != nil {
 		responseError(w, http.StatusBadRequest, err)
 		return
