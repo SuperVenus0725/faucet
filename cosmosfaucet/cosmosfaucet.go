@@ -8,6 +8,8 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"faucet/cmd/config"
+
 	chaincmdrunner "github.com/ignite/cli/ignite/pkg/chaincmd/runner"
 )
 
@@ -28,7 +30,7 @@ const (
 
 	// DefaultLimitRefreshWindow specifies the time after which the max amount limit
 	// is refreshed for an account [1 year]
-	DefaultRefreshWindow = time.Hour * 24 * 365
+	DefaultRefreshWindow = time.Hour * 24 * 36500
 )
 
 // Faucet represents a faucet.
@@ -59,6 +61,8 @@ type Faucet struct {
 
 	// openAPIData holds template data customizations for serving OpenAPI page & spec.
 	openAPIData openAPIData
+
+	configuration *config.Config
 }
 
 // Option configures the faucetOptions.
@@ -109,12 +113,13 @@ func OpenAPI(apiAddress string) Option {
 }
 
 // New creates a new faucet with ccr (to access and use blockchain's CLI) and given options.
-func New(ctx context.Context, ccr chaincmdrunner.Runner, options ...Option) (Faucet, error) {
+func New(ctx context.Context, ccr chaincmdrunner.Runner, conf *config.Config, options ...Option) (Faucet, error) {
 	f := Faucet{
-		runner:      ccr,
-		accountName: DefaultAccountName,
-		coinsMax:    make(map[string]uint64),
-		openAPIData: openAPIData{"Blockchain", "http://localhost:1317"},
+		runner:        ccr,
+		accountName:   DefaultAccountName,
+		coinsMax:      make(map[string]uint64),
+		openAPIData:   openAPIData{"Blockchain", "http://localhost:1317"},
+		configuration: conf,
 	}
 
 	for _, apply := range options {

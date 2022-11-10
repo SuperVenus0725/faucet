@@ -11,6 +11,8 @@ import (
 
 	"faucet/cosmosfaucet"
 
+	"faucet/cmd/config"
+
 	"github.com/ignite/cli/ignite/pkg/chaincmd"
 	chaincmdrunner "github.com/ignite/cli/ignite/pkg/chaincmd/runner"
 	"github.com/ignite/cli/ignite/pkg/cosmosver"
@@ -18,6 +20,12 @@ import (
 
 func main() {
 	flag.Parse()
+
+	configuration, err := config.NewConfig()
+	err = configuration.LoadConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	configKeyringBackend, err := chaincmd.KeyringBackendFromString(keyringBackend)
 	if err != nil {
@@ -76,7 +84,7 @@ func main() {
 
 	faucetOptions = append(faucetOptions, cosmosfaucet.Account(keyName, keyMnemonic, coinType))
 
-	faucet, err := cosmosfaucet.New(context.Background(), cr, faucetOptions...)
+	faucet, err := cosmosfaucet.New(context.Background(), cr, configuration, faucetOptions...)
 	if err != nil {
 		log.Fatal(err)
 	}

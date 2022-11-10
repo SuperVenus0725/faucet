@@ -15,12 +15,12 @@ func (f Faucet) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	router := mux.NewRouter()
 
 	router.
-		Handle("/", cors.Default().Handler(http.HandlerFunc(f.faucetHandler))).
-		Methods(http.MethodPost, http.MethodOptions)
+		Handle("/", http.HandlerFunc(f.faucetHandler)).
+		Methods(http.MethodPost)
 
 	router.
 		Handle("/info", cors.Default().Handler(http.HandlerFunc(f.faucetInfoHandler))).
-		Methods(http.MethodGet, http.MethodOptions)
+		Methods(http.MethodGet)
 
 	router.
 		HandleFunc("/", openapiconsole.Handler("Faucet", "openapi.yml")).
