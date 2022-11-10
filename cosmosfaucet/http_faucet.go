@@ -45,12 +45,12 @@ func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 		responseError(w, http.StatusBadRequest, err)
 		return
 	}
-	fmt.Println("Check if cookie is valid")
-	fmt.Println(cookie_captcha.Valid())
-	if err = cookie_captcha.Valid(); err != nil {
-		responseError(w, http.StatusBadRequest, err)
-		return
-	}
+	// fmt.Println("Check if cookie is valid")
+	// fmt.Println(cookie_captcha.Valid())
+	// if err = cookie_captcha.Valid(); err != nil {
+	// 	responseError(w, http.StatusBadRequest, err)
+	// 	return
+	// }
 
 	fmt.Println("00000Passed here00000")
 	fmt.Println(cookie_captcha.Value)
