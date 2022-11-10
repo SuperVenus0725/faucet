@@ -3,6 +3,7 @@ package cosmosfaucet
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -41,6 +42,7 @@ func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(r)
 	if len(r.FormValue("g-recaptcha-response")) == 0 {
 		responseError(w, http.StatusBadRequest, nil)
 		return
