@@ -41,8 +41,6 @@ type TransferResponse struct {
 func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 	var req TransferRequest
 	cookie_captcha, err := r.Cookie("response")
-	fmt.Println(cookie_captcha)
-
 	if err != nil {
 		responseError(w, http.StatusBadRequest, err)
 		return
@@ -53,6 +51,8 @@ func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("00000Passed here00000")
+	fmt.Println(fmt.Println("Passed here"))
 	result, err := f.validateReCAPTCHA(cookie_captcha.Value)
 	if !result || err != nil {
 		responseError(w, http.StatusBadRequest, err)
