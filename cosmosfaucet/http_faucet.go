@@ -3,12 +3,9 @@ package cosmosfaucet
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"faucet/cmd/config"
 
@@ -18,19 +15,11 @@ import (
 type TransferRequest struct {
 	// AccountAddress to request for coins.
 	AccountAddress string `json:"address"`
-
-	// reCaptcha response.
-	ReCaptchaResponse string `json:"response"`
-
-	// Coins that are requested.
-	// default ones used when this one isn't provided.
-	Coins []string `json:"coins"`
 }
 
 func NewTransferRequest(accountAddress string, coins []string) TransferRequest {
 	return TransferRequest{
 		AccountAddress: accountAddress,
-		Coins:          coins,
 	}
 }
 
@@ -45,25 +34,17 @@ func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 		responseError(w, http.StatusBadRequest, err)
 		return
 	}
-	fmt.Println("Check if cookie is valid")
-	fmt.Println(cookie_captcha.Valid())
+
 	// if err = cookie_captcha.Valid(); err != nil {
 	// 	responseError(w, http.StatusBadRequest, err)
 	// 	return
 	// }
 
-	fmt.Println("00000Passed here00000")
-	fmt.Println(cookie_captcha.Value)
-
 	err = f.captcha.Verify(cookie_captcha.Value)
 	if err != nil {
-		fmt.Println("verify failed")
 		responseError(w, http.StatusBadRequest, err)
 		return
 	}
-
-	fmt.Println("Verify result")
-	fmt.Println("passed")
 
 	// decode request into req.
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -71,15 +52,8 @@ func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// determine coins to transfer.
-	coins, err := f.coinsFromRequest(req)
-	if err != nil {
-		responseError(w, http.StatusBadRequest, err)
-		return
-	}
-
 	// try performing the transfer
-	if errCode, err := f.Transfer(r.Context(), req.AccountAddress, coins); err != nil {
+	if errCode, err := f.Transfer(r.Context(), req.AccountAddress); err != nil {
 		if err == context.Canceled {
 			return
 		}
@@ -128,24 +102,6 @@ func (f Faucet) faucetInfoHandler(w http.ResponseWriter, r *http.Request) {
 		IsAFaucet: true,
 		ChainID:   f.chainID,
 	})
-}
-
-// coinsFromRequest determines tokens to transfer from transfer request.
-func (f Faucet) coinsFromRequest(req TransferRequest) (sdk.Coins, error) {
-	if len(req.Coins) == 0 {
-		return f.coins, nil
-	}
-
-	var coins []sdk.Coin
-	for _, c := range req.Coins {
-		coin, err := sdk.ParseCoinNormalized(c)
-		if err != nil {
-			return nil, err
-		}
-		coins = append(coins, coin)
-	}
-
-	return coins, nil
 }
 
 func responseSuccess(w http.ResponseWriter) {
