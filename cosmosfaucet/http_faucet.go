@@ -35,11 +35,6 @@ func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if err = cookie_captcha.Valid(); err != nil {
-	// 	responseError(w, http.StatusBadRequest, err)
-	// 	return
-	// }
-
 	err = f.captcha.Verify(cookie_captcha.Value)
 	if err != nil {
 		responseError(w, http.StatusBadRequest, err)
