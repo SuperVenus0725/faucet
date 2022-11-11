@@ -39,9 +39,9 @@ func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	referer := r.Referer()
-	origin := r.Header.Get("Origin")
+	origin := r.Header.Get("Origin") + "/"
 
-	if origin != referer || referer != f.configuration.Referer {
+	if referer != origin || referer != f.configuration.Referer {
 		fmt.Println("Invalid request")
 		responseError(w, http.StatusBadRequest, err)
 		return
