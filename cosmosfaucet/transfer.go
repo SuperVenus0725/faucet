@@ -71,14 +71,10 @@ func (f *Faucet) Transfer(ctx context.Context, toAccountAddress string) (uint64,
 	// check for each coin, the max transferred amount hasn't been reached
 	for _, c := range f.coins {
 		totalSent, err := f.TotalTransferredAmount(ctx, toAccountAddress, c.Denom)
-		fmt.Println("----Total Sent----")
-		fmt.Println(totalSent)
 		if err != nil {
 			return ERR_CANT_FETCH_TOATL, err
 		}
 
-		fmt.Println("----f.coinsMax[c.Denom]----")
-		fmt.Println(f.coinsMax[c.Denom])
 		if f.coinsMax[c.Denom] != 0 {
 			if totalSent >= f.coinsMax[c.Denom] {
 				return ERR_REACHED_MAX_LIMIT, fmt.Errorf(
@@ -88,8 +84,6 @@ func (f *Faucet) Transfer(ctx context.Context, toAccountAddress string) (uint64,
 				)
 			}
 
-			fmt.Println("----c.Amount.Uint64()----")
-			fmt.Println(c.Amount.Uint64())
 			if (totalSent + c.Amount.Uint64()) > f.coinsMax[c.Denom] {
 				return ERR_EXCEEDING_MAX_LIMIT, fmt.Errorf(
 					`ask less amount for %q denom. account is reaching to the limit (%d) that faucet can tolerate`,
