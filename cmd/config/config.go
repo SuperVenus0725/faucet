@@ -9,6 +9,7 @@ import (
 type Config struct {
 	ReCAPTCHA_VerifyURL string
 	ReCAPTCHA_ServerKey string
+	Referer             string
 }
 
 // GoogleRecaptchaResponse ...
@@ -24,6 +25,7 @@ func NewConfig() (*Config, error) {
 	return &Config{
 		ReCAPTCHA_VerifyURL: "",
 		ReCAPTCHA_ServerKey: "",
+		Referer:             "",
 	}, nil
 }
 
@@ -40,6 +42,7 @@ func (o *Config) LoadConfig() error {
 
 	o.ReCAPTCHA_VerifyURL = os.Getenv("ReCAPTCHA_VerifyURL")
 	o.ReCAPTCHA_ServerKey = os.Getenv("ReCAPTCHA_ServerKey")
+	o.Referer = os.Getenv("Referer")
 
 	return nil
 }

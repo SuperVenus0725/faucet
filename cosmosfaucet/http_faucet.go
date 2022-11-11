@@ -32,13 +32,16 @@ func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 	var req TransferRequest
 	cookie_captcha, err := r.Cookie("response")
 
-	fmt.Println("r.Referer()")
-	fmt.Println(r.Referer())
-
-	fmt.Println("r.Header.Get(Origin)")
-	fmt.Println(r.Header.Get("Origin"))
-
 	if err != nil {
+		fmt.Println("Invalid request")
+		responseError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	referer := r.Referer()
+	origin := r.Header.Get("Origin")
+
+	if origin != referer || referer != f.configuration.Referer {
 		fmt.Println("Invalid request")
 		responseError(w, http.StatusBadRequest, err)
 		return
