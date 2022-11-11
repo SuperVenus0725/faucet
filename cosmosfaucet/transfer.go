@@ -17,12 +17,12 @@ var transferMutex = &sync.Mutex{}
 
 const (
 	NO_ERROR                  = 200
-	ERR_CANT_FETCH_TOATL      = 500
-	ERR_REACHED_MAX_LIMIT     = 501
-	ERR_EXCEEDING_MAX_LIMIT   = 502
-	ERR_ACCOUNT_NOT_AVAILABLE = 503
-	ERR_BALANCE_NOT_ENOUGH    = 504
-	ERR_TX_FAILED             = 505
+	ERR_CANT_FETCH_TOATL      = 800
+	ERR_REACHED_MAX_LIMIT     = 801
+	ERR_EXCEEDING_MAX_LIMIT   = 802
+	ERR_ACCOUNT_NOT_AVAILABLE = 803
+	ERR_BALANCE_NOT_ENOUGH    = 804
+	ERR_TX_FAILED             = 805
 )
 
 // TotalTransferredAmount returns the total transferred amount from faucet account to toAccountAddress.

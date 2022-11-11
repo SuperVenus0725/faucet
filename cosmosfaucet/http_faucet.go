@@ -3,6 +3,7 @@ package cosmosfaucet
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -31,12 +32,14 @@ func (f Faucet) faucetHandler(w http.ResponseWriter, r *http.Request) {
 	var req TransferRequest
 	cookie_captcha, err := r.Cookie("response")
 	if err != nil {
+		fmt.Println("Invalid request")
 		responseError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	err = f.captcha.Verify(cookie_captcha.Value)
 	if err != nil {
+		fmt.Println("Invalid reCaptha")
 		responseError(w, http.StatusBadRequest, err)
 		return
 	}
