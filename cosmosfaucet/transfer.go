@@ -96,9 +96,6 @@ func (f *Faucet) Transfer(ctx context.Context, toAccountAddress string) (uint64,
 		coinsStr = append(coinsStr, c.String())
 	}
 
-	fmt.Println("----coinsStr----")
-	fmt.Println(coinsStr)
-
 	// perform transfer for all coins
 	fromAccount, err := f.runner.ShowAccount(ctx, f.accountName)
 	if err != nil {
